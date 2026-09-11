@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ WWM Color Picker ✨</title>
+  <style>
+    :root {
+      --bg-color: #0b0b0e;
+      --card-bg: rgba(18, 18, 24, 0.85);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --accent-gradient: linear-gradient(135deg, #ec4899, #8b5cf6);
+      --text-main: #ffffff;
+      --text-sub: #a1a1aa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    /* Built-in WWM Background Image */
+    body {
+      background-color: var(--bg-color);
+      background-image: url('https://wallpaperaccess.com/download/where-winds-meet-23988415');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 16px;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Dark Blur Overlay over the wallpaper for high contrast/readability */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11, 11, 14, 0.65);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: -1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 2.3rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    header p.subtitle {
+      color: #f472b6;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    /* Horizontal Layout Container for PC */
+    .dashboard {
+      width: 100%;
+      max-width: 1280px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    /* Desktop View Switch: Horizontal Multi-Column */
+    @media (min-width: 900px) {
+      .dashboard {
+        grid-template-columns: 420px 1fr;
+        align-items: start;
+      }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .picker-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .canvas-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    canvas#satValCanvas {
+      width: 100%;
+      height: 180px;
+      border-radius: 10px;
+      cursor: crosshair;
+    }
+
+    /* --- HUE SLIDER TRACK --- */
+    input[type="range"]#hueSlider {
+      width: 100%;
+      height: 14px;
+      border-radius: 7px;
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+      background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+      cursor: pointer;
+    }
+
+    /* --- CIRCULAR BLACK THUMB (Chrome, Safari, Edge) --- */
+    input[type="range"]#hueSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #121216;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    /* --- CIRCULAR BLACK THUMB (Firefox) --- */
+    input[type="range"]#hueSlider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #121216;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    /* Active drag effect */
+    input[type="range"]#hueSlider::-webkit-slider-thumb:active {
+      transform: scale(1.15);
+    }
+    input[type="range"]#hueSlider::-moz-range-thumb:active {
+      transform: scale(1.15);
+    }
+
+    .side-controls {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .color-swatch-large {
+      width: 100%;
+      height: 70px;
+      border-radius: 10px;
+      background-color: #ffffff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .controls-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .hex-display {
+      font-family: monospace;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .btn-insert {
+      background: var(--accent-gradient);
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      font-size: 0.85rem;
+    }
+
+    .btn-insert:hover { opacity: 0.9; }
+
+    .recent-swatches {
+      display: flex;
+      gap: 8px;
+      min-height: 28px;
+      flex-wrap: wrap;
+    }
+
+    .recent-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+    }
+
+    .preset-color {
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: transform 0.1s;
+    }
+
+    .preset-color:hover { transform: scale(1.08); }
+
+    .gradient-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .gradient-btn {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    .gradient-btn:hover { border-color: #ec4899; }
+
+    .gradient-preview {
+      height: 20px;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    .gradient-title {
+      font-size: 0.8rem;
+      color: #e4e4e7;
+    }
+
+    textarea {
+      width: 100%;
+      height: 90px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #fff;
+      padding: 12px;
+      font-size: 1rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus { border-color: #8b5cf6; }
+
+    .instruction-tip {
+      font-size: 0.8rem;
+      color: #a1a1aa;
+      margin-bottom: 8px;
+    }
+
+    .preview-box, .output-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 50px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+
+    .placeholder-text {
+      color: #52525b;
+      font-style: italic;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-pink {
+      background: var(--accent-gradient);
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>✨ WWM Color Picker ✨</h1>
+    <p class="subtitle">♡ Text Color Formatter for Where Winds Meet ♡</p>
+  </header>
+
+  <div class="dashboard">
+
+    <!-- LEFT COLUMN: Pickers & Presets -->
+    <div class="column">
+      
+      <!-- Color Picker Card -->
+      <div class="card">
+        <div class="card-title">🎨 Color Picker</div>
+        <div class="picker-section">
+          <div class="canvas-container">
+            <canvas id="satValCanvas" width="300" height="180"></canvas>
+            <input type="range" id="hueSlider" min="0" max="360" value="0">
+          </div>
+          <div class="side-controls">
+            <div class="color-swatch-large" id="currentSwatch"></div>
+            <div class="controls-right">
+              <div class="hex-display" id="hexText">#ffffff</div>
+              <button class="btn-insert" id="btnApplyColor">✨ Apply to Selected</button>
+            </div>
+          </div>
+          <div style="font-size:0.8rem; color: var(--text-sub);">⏰ Recent Switches</div>
+          <div class="recent-swatches" id="recentContainer"></div>
+        </div>
+      </div>
+
+      <!-- WWM Preset Colors -->
+      <div class="card">
+        <div class="card-title"> WWM Quick Colors</div>
+        <div class="preset-grid" id="wwmPresets"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Text Input, Preview, Output & Gradients -->
+    <div class="column">
+      
+      <!-- Input Text Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>📝 Input Text</span>
+          <button class="btn-secondary" id="btnUndo">↩ Clear</button>
+        </div>
+        <div class="instruction-tip">💡 Highlight text below, then click any color switch to color individual parts!</div>
+        <textarea id="inputText" placeholder="Put text here..."></textarea>
+      </div>
+
+      <!-- Live Preview Card -->
+      <div class="card">
+        <div class="card-title">👀 Preview</div>
+        <div class="preview-box" id="previewDisplay"></div>
+      </div>
+
+      <!-- Formatted Output Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>📋 Formatted Code Output</span>
+          <button class="btn-pink" id="btnCopy">Copy ✂️</button>
+        </div>
+        <div class="output-box" id="outputDisplay"></div>
+      </div>
+
+      <!-- Gradient Presets Card -->
+      <div class="card">
+        <div class="card-title">✨ Gradient Presets (Full Text)</div>
+        <div class="gradient-grid" id="gradientGrid"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let currentHue = 0;
+    let currentSat = 0;
+    let currentVal = 1;
+    let selectedHex = '#ffffff';
+    let recentColors = [];
+
+    let charColorMap = [];
+    let savedStart = 0;
+    let savedEnd = 0;
+
+    const presets = [
+      '#6b7280', '#fcd34d', '#ffffff', '#f87171', '#818cf8', '#fed7aa',
+      '#6ee7b7', '#fef08a', '#f87171', '#c084fc', '#94a3b8', '#a7f3d0',
+      '#9ca3af', '#d97706', '#bbf7d0', '#b45309', '#38bdf8', '#cbd5e1',
+      '#ef4444', '#ffffff', '#a16207', '#93c5fd', '#15803d', '#475569'
+    ];
+
+    const gradients = [
+      { name: "🌈Rainbow", colors: ["#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#8b00ff"] },
+      { name: "🌅 Sunset", colors: ["#ff512f", "#f09819", "#ff5e62"] },
+      { name: "🌊 Ocean", colors: ["#4a00e0", "#8e2de2"] },
+      { name: "🍭 Candy", colors: ["#ffb199", "#ff0844", "#ffb199"] },
+      { name: "🌸 Sakura", colors: ["#ff758c", "#ff7eb3", "#ffffff"] },
+      { name: "✨ Aurora", colors: ["#00c6ff", "#0072ff", "#00f2fe"] },
+      { name: "🔥 Fire", colors: ["#ff0000", "#ff7300", "#fffb00"] },
+      { name: "💜 Lavender", colors: ["#e0c3fc", "#8ec5fc"] },
+      { name: "🌿 Mint", colors: ["#00b09b", "#96c93d"] },
+      { name: "🍑Peach", colors: ["#ffecd2", "#fcb69f"] },
+      { name: "🌌 Galaxy", colors: ["#654ea3", "#eaafc8", "#ff0000"] },
+      { name: "❄️ Ice", colors: ["#e0eafc", "#cfdef3", "#00c6ff"] }
+    ];
+
+    const canvas = document.getElementById('satValCanvas');
+    const ctx = canvas.getContext('2d');
+    const hueSlider = document.getElementById('hueSlider');
+    const swatch = document.getElementById('currentSwatch');
+    const hexText = document.getElementById('hexText');
+    const inputText = document.getElementById('inputText');
+    const previewDisplay = document.getElementById('previewDisplay');
+    const outputDisplay = document.getElementById('outputDisplay');
+    const recentContainer = document.getElementById('recentContainer');
+
+    function drawSatValCanvas() {
+      ctx.fillStyle = `hsl(${currentHue}, 100%, 50%)`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let whiteGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      whiteGrad.addColorStop(0, 'rgba(255,255,255,1)');
+      whiteGrad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = whiteGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let blackGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      blackGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      blackGrad.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.fillStyle = blackGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function updateColor() {
+      selectedHex = hsvToHex(currentHue, currentSat, currentVal);
+      swatch.style.backgroundColor = selectedHex;
+      hexText.textContent = selectedHex.toLowerCase();
+    }
+
+    function addRecentColor(hex) {
+      hex = hex.toLowerCase();
+      recentColors = recentColors.filter(c => c !== hex);
+      recentColors.unshift(hex);
+      if (recentColors.length > 6) recentColors.pop();
+
+      recentContainer.innerHTML = '';
+      recentColors.forEach(color => {
+        const div = document.createElement('div');
+        div.className = 'recent-swatch';
+        div.style.backgroundColor = color;
+        div.onclick = () => selectColor(color);
+        recentContainer.appendChild(div);
+      });
+    }
+
+    function trackSelection() {
+      savedStart = inputText.selectionStart;
+      savedEnd = inputText.selectionEnd;
+    }
+
+    function syncTextMap() {
+      const text = inputText.value;
+      let newMap = [];
+
+      for (let i = 0; i < text.length; i++) {
+        if (charColorMap[i]) {
+          newMap.push({ char: text[i], color: charColorMap[i].color });
+        } else {
+          newMap.push({ char: text[i], color: "#ffffff" });
+        }
+      }
+      charColorMap = newMap;
+      renderOutput();
+    }
+
+    function applyColorToSelection(color) {
+      color = color.toLowerCase();
+      addRecentColor(color);
+
+      if (savedStart !== savedEnd && savedStart < charColorMap.length) {
+        for (let i = savedStart; i < savedEnd; i++) {
+          if (charColorMap[i]) {
+            charColorMap[i].color = color;
+          }
+        }
+      } else {
+        charColorMap.forEach(item => item.color = color);
+      }
+      renderOutput();
+    }
+
+    function renderOutput() {
+      const text = inputText.value;
+      if (!text) {
+        previewDisplay.innerHTML = '<span class="placeholder-text"></span>';
+        outputDisplay.textContent = '';
+        return;
+      }
+
+      let formattedOutput = "";
+      let previewHtml = "";
+      let lastColor = null;
+
+      charColorMap.forEach(item => {
+        if (item.char === " ") {
+          formattedOutput += " ";
+          previewHtml += " ";
+        } else {
+          if (item.color !== lastColor) {
+            formattedOutput += `${item.color}${item.char}`;
+            lastColor = item.color;
+          } else {
+            formattedOutput += item.char;
+          }
+          previewHtml += `<span style="color:${item.color}">${escapeHtml(item.char)}</span>`;
+        }
+      });
+
+      outputDisplay.textContent = formattedOutput;
+      previewDisplay.innerHTML = previewHtml;
+    }
+
+    function selectColor(hex) {
+      selectedHex = hex;
+      swatch.style.backgroundColor = hex;
+      hexText.textContent = hex.toLowerCase();
+      applyColorToSelection(hex);
+    }
+
+    function applyGradient(colorStops) {
+      const text = inputText.value;
+      if (!text) return;
+
+      for (let i = 0; i < text.length; i++) {
+        let ratio = text.length > 1 ? i / (text.length - 1) : 0;
+        let hex = interpolateMultiColor(colorStops, ratio).toLowerCase();
+        if (charColorMap[i]) charColorMap[i].color = hex;
+      }
+      renderOutput();
+    }
+
+    function hsvToHex(h, s, v) {
+      let r, g, b;
+      let i = Math.floor(h / 60) % 6;
+      let f = h / 60 - Math.floor(h / 60);
+      let p = v * (1 - s);
+      let q = v * (1 - f * s);
+      let t = v * (1 - (1 - f) * s);
+
+      switch (i) {
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+      }
+      return "#" + [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+    }
+
+    function hexToRgb(hex) {
+      let c = hex.replace('#', '');
+      if(c.length === 3) c = c.split('').map(x => x+x).join('');
+      let num = parseInt(c, 16);
+      return [num >> 16, (num >> 8) & 255, num & 255];
+    }
+
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b].map(x => Math.round(x).toString(16).padStart(2, '0')).join('');
+    }
+
+    function interpolateMultiColor(colors, ratio) {
+      if (colors.length === 1) return colors[0];
+      let scaledRatio = ratio * (colors.length - 1);
+      let index = Math.floor(scaledRatio);
+      let localRatio = scaledRatio - index;
+
+      if (index >= colors.length - 1) return colors[colors.length - 1];
+
+      let c1 = hexToRgb(colors[index]);
+      let c2 = hexToRgb(colors[index + 1]);
+
+      let r = c1[0] + (c2[0] - c1[0]) * localRatio;
+      let g = c1[1] + (c2[1] - c1[1]) * localRatio;
+      let b = c1[2] + (c2[2] - c1[2]) * localRatio;
+
+      return rgbToHex(r, g, b);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function init() {
+      drawSatValCanvas();
+
+      const wwmGrid = document.getElementById('wwmPresets');
+      presets.forEach(color => {
+        const div = document.createElement('div');
+        div.className = 'preset-color';
+        div.style.backgroundColor = color;
+        div.onclick = () => selectColor(color);
+        wwmGrid.appendChild(div);
+      });
+
+      const gradGrid = document.getElementById('gradientGrid');
+      gradients.forEach(g => {
+        const btn = document.createElement('div');
+        btn.className = 'gradient-btn';
+        btn.onclick = () => applyGradient(g.colors);
+
+        const preview = document.createElement('div');
+        preview.className = 'gradient-preview';
+        preview.style.background = `linear-gradient(to right, ${g.colors.join(', ')})`;
+
+        const label = document.createElement('div');
+        label.className = 'gradient-title';
+        label.textContent = g.name;
+
+        btn.appendChild(preview);
+        btn.appendChild(label);
+        gradGrid.appendChild(btn);
+      });
+
+      hueSlider.oninput = (e) => {
+        currentHue = e.target.value;
+        drawSatValCanvas();
+        updateColor();
+      };
+
+      canvas.onmousedown = (e) => {
+        function move(e) {
+          let rect = canvas.getBoundingClientRect();
+          let x = Math.max(0, Math.min(canvas.width, e.clientX - rect.left));
+          let y = Math.max(0, Math.min(canvas.height, e.clientY - rect.top));
+          currentSat = x / canvas.width;
+          currentVal = 1 - (y / canvas.height);
+          updateColor();
+        }
+        move(e);
+        window.onmousemove = move;
+        window.onmouseup = () => window.onmousemove = null;
+      };
+
+      inputText.onmouseup = trackSelection;
+      inputText.onkeyup = trackSelection;
+      inputText.onselect = trackSelection;
+
+      document.getElementById('btnApplyColor').onclick = () => {
+        applyColorToSelection(selectedHex);
+      };
+
+      inputText.oninput = () => syncTextMap();
+
+      document.getElementById('btnCopy').onclick = () => {
+        navigator.clipboard.writeText(outputDisplay.textContent);
+        const btn = document.getElementById('btnCopy');
+        btn.textContent = 'Copied! ✅';
+        setTimeout(() => btn.textContent = 'Copy ✂️', 1500);
+      };
+
+      document.getElementById('btnUndo').onclick = () => {
+        inputText.value = '';
+        charColorMap = [];
+        savedStart = 0;
+        savedEnd = 0;
+        renderOutput();
+      };
+
+      renderOutput();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
