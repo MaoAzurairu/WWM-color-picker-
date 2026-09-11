@@ -30,4 +30,8 @@ Check out the live website here:
 3. **Copy Code:** Click the **Copy ✂️** button on the **Formatted Code Output** card.
 4. **Paste In-Game:** Paste your output code directly into *Where Winds Meet*!
 
+## 📄 License
+
+Copyright (c) 2026. All rights reserved.
+
 ---
