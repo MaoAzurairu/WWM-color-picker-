@@ -10,7 +10,7 @@ An interactive, custom web tool designed to format colored text for **Where Wind
 - **🌈 Multi-Color & Gradients:** Apply custom colors to individual highlighted characters or use built-in multi-color gradients for full sentences.
 - **📱 Responsive Layout:** Wide horizontal multi-column layout for PC desktops and single-column layout for mobile devices.
 - **📋 One-Click Copy:** Easily preview formatted output and copy generated code snippets directly to your clipboard.
-- **⏰ Recent & Preset Colors:** Quick-access color swatches and preset palettes inspired by WWM aesthetic themes.
+- **⏰ Recent & Preset Colors:** Quick-access color switches and preset palettes inspired by WWM aesthetic themes.
 
 ---
 
@@ -35,3 +35,6 @@ Check out the live website here:
 Copyright (c) 2026. All rights reserved.
 
 ---
+
+
+I just vibe coded this thing. So, if anyone wanna take it or make it better feel free to do it. Have fun!!!
